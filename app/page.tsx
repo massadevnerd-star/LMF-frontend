@@ -1,103 +1,95 @@
-import Image from "next/image";
+'use client'
+
+import { useState } from "react";
+import { ViewType, Song } from '@/app/types';
+import GenioAi from "./_components/GenioAi/page";
+import Dashboard from "./_components/Dashboard/page";
+import MainLayout from "./_components/MainLayout";
+import Laboratorio from "./_components/Laboratorio/page";
+import AtelierView from "./_components/AtelierView/page";
+import ParentsArea from "./_components/ParentsArea/page";
+import SearchView from "./_components/SearchView/page";
+import { useAuth } from "@/app/context/AuthContext";
+import ProfileSelection from "./_components/ProfileSelection/page";
+import UserProfile from "./_components/UserProfile/page";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const { user, activeProfile } = useAuth();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  const [currentView, setCurrentView] = useState<ViewType>('home');
+  // selectedStory seems unused in current renderView logic, but keeping state to avoid breaking potential future handling
+  const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+  // Unused handlers kept for safety if they are used by children I passed props to? 
+  // Wait, Dashboard doesn't take these handlers in the original code. 
+  // I will just keep logic as is but minimal.
+
+  const handleSideNav = (view: ViewType) => {
+    if (view === 'laboratorio') {
+      setSelectedDraftId(null);
+    }
+    setCurrentView(view);
+  };
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'home':
+        return <Dashboard
+          currentView={currentView}
+          setView={setCurrentView}
+          isDarkMode={isDarkMode}
+          setSelectedDraftId={setSelectedDraftId}
+        />;
+
+      /*      case 'atelier':
+              return <AtelierView
+                currentView={currentView}
+                setView={setCurrentView}
+                isDarkMode={isDarkMode}
+                setSelectedDraftId={setSelectedDraftId}
+              />; */
+      case 'search':
+        return <SearchView currentView={currentView} setView={setCurrentView} isDarkMode={isDarkMode} />;
+      case 'ai-discovery':
+        return <GenioAi currentView={currentView} setView={setCurrentView} isDarkMode={isDarkMode} />;
+      case 'profile-selection':
+        return <ProfileSelection isDarkMode={isDarkMode} setView={setCurrentView} />;
+      case 'laboratorio':
+        return <Laboratorio
+          currentView={currentView}
+          setView={setCurrentView}
+          isDarkMode={isDarkMode}
+          selectedDraftId={selectedDraftId}
+        />;
+      case 'gadgets':
+        return 'GadgetsView';
+      case 'user-profile':
+        return <UserProfile isDarkMode={isDarkMode} setView={setCurrentView} />;
+      case 'parents-area':
+        return <ParentsArea currentView={currentView} setView={setCurrentView} isDarkMode={isDarkMode} />;
+      default:
+        return 'HomeView';
+    }
+  }
+
+  // Guard: If logged in but no profile selected, render ProfileSelection View
+  // We override currentView safely here or just let the effect of renderView handle it?
+  // Better approach: If user && !activeProfile, force the view to be profile selection in the switch or override the return of renderView
+
+  const contentToRender = (user && !activeProfile) ? <ProfileSelection isDarkMode={isDarkMode} setView={setCurrentView} /> : renderView();
+
+
+  return (
+    <MainLayout
+      currentView={currentView}
+      setView={handleSideNav}
+      isDarkMode={isDarkMode}
+      toggleTheme={toggleTheme}
+    >
+      {contentToRender}
+    </MainLayout>
   );
 }

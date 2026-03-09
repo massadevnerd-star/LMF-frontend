@@ -1,0 +1,11 @@
+
+> lemiestorie@0.1.0 mobile:build
+> cross-env BUILD_TARGET=mobile NEXT_PUBLIC_BUILD_TARGET=mobile next build && npx cap sync mobile:build BUILD_TARGET=mobile NEXT_PUBLIC_BUILD_TARGET=mobile next build
+
+   ▲ Next.js 15.5.6
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 13.8s
+   Linting and checking validity of types ...
+Terminare il processo batch (S/N)? 

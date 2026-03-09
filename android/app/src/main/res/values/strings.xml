@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Le Mie Storie</string>
+    <string name="title_activity_main">Le Mie Storie</string>
+    <string name="package_name">com.lemiestorie.app</string>
+    <string name="custom_url_scheme">com.lemiestorie.app</string>
+</resources>
