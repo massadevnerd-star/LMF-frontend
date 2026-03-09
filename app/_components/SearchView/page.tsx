@@ -6,12 +6,16 @@ import { ViewType, Story } from "@/app/types";
 import api from '@/app/lib/api';
 import { cn } from '@/app/lib/utils';
 import { getAssetUrl } from '@/app/lib/urlHelper';
+import { useAuth } from '@/app/context/AuthContext';
 import { Search, Sparkles, PawPrint, Ghost, Laugh, BookOpen, Star, Loader2, Play, Bookmark } from 'lucide-react';
 
 interface SearchViewProps {
     currentView: ViewType;
     setView: (view: ViewType) => void;
     isDarkMode: boolean;
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
+    onAuthRequired?: () => void;
 }
 
 // Mock categories
@@ -27,9 +31,9 @@ const CATEGORIES = [
 // Mocks removed - using real data
 
 
-export default function SearchView({ currentView, setView, isDarkMode }: SearchViewProps) {
+export default function SearchView({ currentView, setView, isDarkMode, searchQuery, setSearchQuery, onAuthRequired }: SearchViewProps) {
+    const { user } = useAuth();
     const router = useRouter();
-    const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
     const [stories, setStories] = useState<Story[]>([]);
     const [loading, setLoading] = useState(true);
@@ -38,7 +42,8 @@ export default function SearchView({ currentView, setView, isDarkMode }: SearchV
         const fetchStories = async () => {
             setLoading(true);
             try {
-                const response = await api.get('/api/auth/stories?status=published');
+                const endpoint = user ? '/api/auth/stories?status=published' : '/api/stories/public';
+                const response = await api.get(endpoint);
                 if (Array.isArray(response.data)) {
                     setStories(response.data);
                 }
@@ -50,30 +55,27 @@ export default function SearchView({ currentView, setView, isDarkMode }: SearchV
         };
 
         fetchStories();
-    }, []);
+    }, [user]); // Re-fetch if user logs in/out while on this view
 
     const filteredStories = stories.filter(story => {
         const output = typeof story.output === 'string' ? JSON.parse(story.output) : story.output;
-        const title = story.title || 'Senza Titolo';
-        const subject = story.story_subject || 'other';
-
+        const title = output?.title || story.title || 'Senza Titolo';
+        const subject = story.story_subject || '';
         const description = output?.formData?.description || '';
 
-        // Map subject to category or check simply
-        const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            description.toLowerCase().includes(searchQuery.toLowerCase());
+        const searchLower = searchQuery.toLowerCase();
+        const matchesSearch = title.toLowerCase().includes(searchLower) ||
+            subject.toLowerCase().includes(searchLower) ||
+            description.toLowerCase().includes(searchLower);
 
-        // Simple category matching - we might need to map real subjects to our categories later
-        // For now, if activeCategory is not all, check if subject contains the category keyword or matches
         let matchesCategory = activeCategory === 'all';
         if (!matchesCategory) {
-            // Rough mapping for demo since backend might have free text subjects
-            if (activeCategory === 'magic' && (subject.includes('mago') || subject.includes('fata') || subject.includes('magia'))) matchesCategory = true;
-            else if (activeCategory === 'animals' && (subject.includes('animale') || subject.includes('gatto') || subject.includes('cane'))) matchesCategory = true;
-            else if (activeCategory === 'adventure' && (subject.includes('avventura') || subject.includes('viaggio'))) matchesCategory = true;
-            else if (activeCategory === 'funny' && (subject.includes('divertente') || subject.includes('ridere'))) matchesCategory = true;
-            else if (subject === activeCategory) matchesCategory = true;
+            const subjectLower = subject.toLowerCase();
+            if (activeCategory === 'magic' && (subjectLower.includes('mago') || subjectLower.includes('fata') || subjectLower.includes('magia'))) matchesCategory = true;
+            else if (activeCategory === 'animals' && (subjectLower.includes('animale') || subjectLower.includes('gatto') || subjectLower.includes('cane'))) matchesCategory = true;
+            else if (activeCategory === 'adventure' && (subjectLower.includes('avventura') || subjectLower.includes('viaggio'))) matchesCategory = true;
+            else if (activeCategory === 'funny' && (subjectLower.includes('divertente') || subjectLower.includes('ridere'))) matchesCategory = true;
+            else if (subjectLower === activeCategory) matchesCategory = true;
         }
 
         return matchesSearch && matchesCategory;
@@ -98,7 +100,7 @@ export default function SearchView({ currentView, setView, isDarkMode }: SearchV
                     <p className={cn("text-lg opacity-70", textColor)}>Trova la tua prossima avventura magica!</p>
                 </div>
 
-                <div className="relative max-w-2xl w-full">
+                <div className="relative max-w-2xl w-full hidden lg:block">
                     <input
                         type="text"
                         placeholder="Cerca una favola..."
@@ -143,15 +145,19 @@ export default function SearchView({ currentView, setView, isDarkMode }: SearchV
                     {filteredStories.map(story => {
                         const output = typeof story.output === 'string' ? JSON.parse(story.output) : story.output;
                         const cover = output?.coverImage || story.cover_image;
-                        // Mock view count for now as API might not provide it yet
-                        const views = Math.floor(Math.random() * 2000) + 100;
-                        const title = story ? output.title : (story || 'Senza Titolo');
+                        const title = output?.title || story.title || 'Senza Titolo';
 
 
                         return (
                             <div
                                 key={story.id}
-                                onClick={() => router.push(`/view-story?id=${story.id}`)}
+                                onClick={() => {
+                                    if (!user) {
+                                        onAuthRequired?.();
+                                    } else {
+                                        router.push(`/view-story?id=${story.id}`);
+                                    }
+                                }}
                                 className={cn("flex flex-col group cursor-pointer", cardBg, isDarkMode ? "border-transparent" : "")}
                             >
                                 {/* Card Image Container */}

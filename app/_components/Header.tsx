@@ -1,6 +1,6 @@
 import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import Image from 'next/image';
 import { ViewType } from '@/app/types';
 import api from '@/app/lib/api';
@@ -27,6 +27,8 @@ interface HeaderProps {
     isAuthenticated?: boolean;
     onLogin?: (method: 'google' | 'email') => void;
     setView: (view: ViewType) => void;
+    searchQuery?: string;
+    setSearchQuery?: (query: string) => void;
 }
 
 const LogoMobileSVG = ({ isDarkMode, onGoHome }: { isDarkMode: boolean; onGoHome: () => void }) => (
@@ -47,7 +49,16 @@ const LogoMobileSVG = ({ isDarkMode, onGoHome }: { isDarkMode: boolean; onGoHome
     </button>
 );
 
-function Header({ currentView, isDarkMode, onToggleTheme, isAuthenticated, onLogin, setView }: HeaderProps) {
+const Header = forwardRef<any, HeaderProps>(({
+    currentView,
+    isDarkMode,
+    onToggleTheme,
+    isAuthenticated,
+    onLogin,
+    setView,
+    searchQuery,
+    setSearchQuery
+}, ref) => {
     const { user, logout, activeProfile, setActiveProfile } = useAuth();
     const { language, setLanguage, t } = useLanguage();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,6 +69,19 @@ function Header({ currentView, isDarkMode, onToggleTheme, isAuthenticated, onLog
     const [isPinModalOpen, setIsPinModalOpen] = useState(false);
     const [modalView, setModalView] = useState<'options' | 'email_login' | 'register' | 'forgot_password'>('options');
     const menuRef = useRef<HTMLDivElement>(null);
+    const loginTriggerRef = useRef<(() => void) | null>(null);
+
+    // Expose login trigger to parent
+    useImperativeHandle(ref, () => ({
+        openLogin: () => {
+            setIsLoginModalOpen(true);
+            setModalView('options');
+        }
+    }));
+
+    // If onTriggerLogin is a function, call it? No, that's the wrong way.
+    // Let's use a simpler approach: page.tsx has the state, and passes it to Header.
+
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -186,6 +210,19 @@ function Header({ currentView, isDarkMode, onToggleTheme, isAuthenticated, onLog
                         <input
                             type="text"
                             placeholder={t('header.menu.search_placeholder') || 'Cerca...'}
+                            value={searchQuery || ''}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                setSearchQuery?.(val);
+                                if (val.trim() !== '' && currentView !== 'search') {
+                                    setView('search');
+                                }
+                            }}
+                            onFocus={() => {
+                                if (currentView !== 'search') {
+                                    setView('search');
+                                }
+                            }}
                             className={`w-full py-2.5 pl-10 pr-4 rounded-full text-xs font-bold border-2 transition-all outline-none ${isDarkMode
                                 ? 'bg-indigo-900/40 border-indigo-500/20 text-white placeholder:text-indigo-400 focus:border-indigo-400'
                                 : 'bg-gray-100 border-transparent text-gray-800 placeholder:text-gray-400 focus:bg-white focus:border-orange-200 shadow-inner'
@@ -596,6 +633,6 @@ function Header({ currentView, isDarkMode, onToggleTheme, isAuthenticated, onLog
             />
         </>
     );
-}
+});
 
 export default Header

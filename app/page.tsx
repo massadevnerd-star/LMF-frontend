@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ViewType, Song } from '@/app/types';
 import GenioAi from "./_components/GenioAi/page";
 import Dashboard from "./_components/Dashboard/page";
@@ -15,13 +15,19 @@ import UserProfile from "./_components/UserProfile/page";
 
 export default function Home() {
   const { user, activeProfile } = useAuth();
+  const headerRef = useRef<any>(null);
 
   const [currentView, setCurrentView] = useState<ViewType>('home');
+  const [searchQuery, setSearchQuery] = useState('');
   // selectedStory seems unused in current renderView logic, but keeping state to avoid breaking potential future handling
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+  const handleAuthRequired = () => {
+    headerRef.current?.openLogin();
+  };
 
   // Unused handlers kept for safety if they are used by children I passed props to? 
   // Wait, Dashboard doesn't take these handlers in the original code. 
@@ -52,7 +58,14 @@ export default function Home() {
                 setSelectedDraftId={setSelectedDraftId}
               />; */
       case 'search':
-        return <SearchView currentView={currentView} setView={setCurrentView} isDarkMode={isDarkMode} />;
+        return <SearchView
+          currentView={currentView}
+          setView={setCurrentView}
+          isDarkMode={isDarkMode}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          onAuthRequired={handleAuthRequired}
+        />;
       case 'ai-discovery':
         return <GenioAi currentView={currentView} setView={setCurrentView} isDarkMode={isDarkMode} />;
       case 'profile-selection':
@@ -88,6 +101,9 @@ export default function Home() {
       setView={handleSideNav}
       isDarkMode={isDarkMode}
       toggleTheme={toggleTheme}
+      searchQuery={searchQuery}
+      setSearchQuery={setSearchQuery}
+      headerRef={headerRef}
     >
       {contentToRender}
     </MainLayout>

@@ -15,6 +15,9 @@ interface MainLayoutProps {
     setView: (view: ViewType) => void;
     isDarkMode: boolean;
     toggleTheme: () => void;
+    searchQuery?: string;
+    setSearchQuery?: (query: string) => void;
+    headerRef?: any;
 }
 
 export default function MainLayout({
@@ -22,7 +25,10 @@ export default function MainLayout({
     currentView,
     setView,
     isDarkMode,
-    toggleTheme
+    toggleTheme,
+    searchQuery,
+    setSearchQuery,
+    headerRef
 }: MainLayoutProps) {
     const { user, loginWithGoogle } = useAuth();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +89,9 @@ export default function MainLayout({
                         isAuthenticated={!!user}
                         onLogin={handleLogin}
                         setView={setView}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        ref={headerRef}
                     />
                     <div
                         ref={scrollContainerRef}
