@@ -225,10 +225,6 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                             <span className={textColor}>{stories.length}</span>
                             <span className={mutedColor}>Storie</span>
                         </div>
-                        <div className="flex flex-col items-center md:items-start">
-                            <span className={textColor}>{stories.length}</span>
-                            <span className={mutedColor}>Storie</span>
-                        </div>
                         {!isChild && (
                             <div className="flex flex-col items-center md:items-start">
                                 <span className={textColor}>{drafts.length}</span>
