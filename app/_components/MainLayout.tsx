@@ -30,7 +30,7 @@ export default function MainLayout({
     setSearchQuery,
     headerRef
 }: MainLayoutProps) {
-    const { user, loginWithGoogle } = useAuth();
+    const { user, loginWithGoogle, hasStories } = useAuth();
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [showScrollButtons, setShowScrollButtons] = useState({ top: false, bottom: false });
 
@@ -75,6 +75,8 @@ export default function MainLayout({
     const textColor = isDarkMode ? 'text-blue-50' : 'text-gray-800';
     const borderClass = isDarkMode ? 'border-indigo-500/20' : 'border-orange-100';
 
+    const isScrollLocked = !!user && !hasStories && (currentView === 'home' || !currentView);
+
     return (
         <div className={`flex flex-col h-screen transition-colors duration-700 ${pageBg} ${textColor} overflow-hidden select-none`}>
             <div className="flex flex-1 overflow-hidden p-2 lg:p-3 gap-3">
@@ -95,39 +97,42 @@ export default function MainLayout({
                     />
                     <div
                         ref={scrollContainerRef}
-                        className="flex-1 overflow-y-auto px-6 lg:px-10 pb-32 scroll-smooth scrollbar-hide"
+                        className={cn(
+                            "flex-1 px-6 lg:px-10 pb-32 scroll-smooth scrollbar-hide lg:overflow-y-auto",
+                            isScrollLocked ? "overflow-hidden" : "overflow-y-auto"
+                        )}
                     >
                         {children}
                     </div>
 
                     {/* Custom Scroll Buttons - design adatto ai bambini */}
-                    {showScrollButtons.top && (
+                    {showScrollButtons.top && !isScrollLocked && (
                         <button
                             onClick={() => scrollTo('up')}
                             className={cn(
-                                "fixed right-6 top-28 z-50 w-14 h-14 flex items-center justify-center rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 border-2",
+                                "fixed right-6 top-28 z-50 w-10 h-10 flex items-center justify-center rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 border-2",
                                 isDarkMode
                                     ? "bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-300/40 shadow-[0_4px_20px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_28px_rgba(99,102,241,0.5)]"
                                     : "bg-gradient-to-br from-purple-400 to-pink-500 border-white/40 shadow-[0_4px_20px_rgba(168,85,247,0.5)] hover:shadow-[0_6px_28px_rgba(236,72,153,0.5)]"
                             )}
                             aria-label="Scorri su"
                         >
-                            <ChevronUp className="w-7 h-7" strokeWidth={3} />
+                            <ChevronUp className="w-5 h-5" strokeWidth={3} />
                         </button>
                     )}
 
-                    {showScrollButtons.bottom && (
+                    {showScrollButtons.bottom && !isScrollLocked && (
                         <button
                             onClick={() => scrollTo('down')}
                             className={cn(
-                                "fixed right-6 bottom-28 z-50 w-14 h-14 flex items-center justify-center rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 border-2",
+                                "fixed right-6 bottom-28 z-50 w-10 h-10 flex items-center justify-center rounded-full text-white shadow-xl hover:scale-110 active:scale-95 transition-all duration-200 border-2",
                                 isDarkMode
-                                    ? "bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-300/40 shadow-[0_4px_20px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_28px_rgba(99,102,241,0.5)]"
+                                    ? "bg-gradient-to-br from-indigo-500 to-purple-600 border-indigo-300/40 shadow-[0_4px_20px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_28_rgba(99,102,241,0.5)]"
                                     : "bg-gradient-to-br from-purple-400 to-pink-500 border-white/40 shadow-[0_4px_20px_rgba(168,85,247,0.5)] hover:shadow-[0_6px_28px_rgba(236,72,153,0.5)]"
                             )}
                             aria-label="Scorri giù"
                         >
-                            <ChevronDown className="w-7 h-7" strokeWidth={3} />
+                            <ChevronDown className="w-5 h-5" strokeWidth={3} />
                         </button>
                     )}
                 </main>

@@ -32,6 +32,8 @@ interface AuthContextType {
     error: string | null;
     activeProfile: ChildProfile | 'adult' | null;
     setActiveProfile: (profile: ChildProfile | 'adult' | null) => void;
+    hasStories: boolean;
+    refreshHasStories: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +43,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeProfile, setActiveProfile] = useState<ChildProfile | 'adult' | null>(null);
+    const [hasStories, setHasStories] = useState<boolean>(true); // Default to true to avoid flash of locked scroll
     const router = useRouter();
+
+    const refreshHasStories = async () => {
+        try {
+            // Check published stories
+            const resPublished = await api.get('/api/auth/stories?status=published');
+            const hasPublished = Array.isArray(resPublished.data) && resPublished.data.length > 0;
+
+            if (hasPublished) {
+                setHasStories(true);
+                return;
+            }
+
+            // Check drafts
+            const resDrafts = await api.get('/api/auth/stories?status=draft');
+            const hasDrafts = Array.isArray(resDrafts.data) && resDrafts.data.length > 0;
+
+            setHasStories(hasPublished || hasDrafts);
+        } catch (err) {
+            console.error('[MOBILE-DEBUG] refreshHasStories failed', err);
+            setHasStories(true); // Fallback to true on error
+        }
+    };
 
     // Fetch user on mount
     useEffect(() => {
@@ -51,6 +76,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 const backendUser = response.data;
                 console.log('[MOBILE-DEBUG] AuthContext: fetchUser success', backendUser.email);
                 setUser(backendUser);
+                // After getting user, check if they have stories
+                await refreshHasStories();
             } catch (err: any) {
                 console.warn('[MOBILE-DEBUG] AuthContext: fetchUser failed', err.response?.status);
                 setUser(null);
@@ -79,6 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const backendUser = response.data;
             console.log('[MOBILE-DEBUG] AuthContext: login success for', backendUser.email);
             setUser(backendUser);
+            await refreshHasStories();
             setActiveProfile(null);
             router.refresh();
         } catch (err: any) {
@@ -165,7 +193,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, login, loginWithGoogle, register, logout, forgotPassword, resetPassword, resendVerification, isLoading, error, activeProfile, setActiveProfile }}>
+        <AuthContext.Provider value={{
+            user, setUser, login, loginWithGoogle, register, logout,
+            forgotPassword, resetPassword, resendVerification,
+            isLoading, error, activeProfile, setActiveProfile,
+            hasStories, refreshHasStories
+        }}>
             {children}
         </AuthContext.Provider>
     );

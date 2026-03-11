@@ -1,4 +1,4 @@
-import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid } from 'lucide-react';
+import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import Image from 'next/image';
@@ -230,6 +230,18 @@ const Header = forwardRef<any, HeaderProps>(({
                         />
                         <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isDarkMode ? 'text-indigo-400' : 'text-gray-400'}`} />
                     </div>
+
+                    {/* 2.5 Theme Toggle Icon (Mobile) */}
+                    <button
+                        onClick={onToggleTheme}
+                        className={`p-2.5 rounded-full border-2 transition-all active:scale-90 shrink-0 ${isDarkMode
+                            ? 'bg-indigo-900/50 border-indigo-500/30 text-yellow-400'
+                            : 'bg-white border-orange-100 text-orange-400 shadow-sm'
+                            }`}
+                        title={isDarkMode ? t('header.menu.day_mode') : t('header.menu.night_mode')}
+                    >
+                        {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </button>
 
                     {/* 3. Grid Icon (Squares) → Opens Nav Menu */}
                     <button

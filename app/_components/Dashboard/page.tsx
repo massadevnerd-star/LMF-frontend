@@ -239,6 +239,13 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                 </div>
             </div>
 
+            {/* --- SECTION TITLE (Ultime Notizie) --- */}
+            <div className="px-4 mb-4 text-center md:text-left">
+                <p className={cn("text-[10px] font-black text-bold uppercase tracking-[0.2em] opacity-60", textColor)}>
+                    News
+                </p>
+            </div>
+
             {/* --- CONTENT TABS --- */}
             <div className={cn("flex items-center gap-8 mb-6 border-b", borderColor)}>
                 <button
@@ -265,12 +272,10 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                 )}
             </div>
 
-            {/* --- CAROUSEL AND GRID CONTENT --- */}
             {activeTab === 'videos' && stories.length > 0 && (
                 <div className="flex flex-col gap-6 mb-8 mt-2">
                     {/* CAROUSEL HEADER */}
                     <div className="relative group/carousel">
-                        <h2 className={cn("text-xl font-bold mb-4 px-1", textColor)}>Ultime Notizie</h2>
 
                         {/* Left Arrow */}
                         <button
@@ -307,14 +312,14 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                                     <div
                                         key={`carousel-${story.id}`}
                                         onClick={() => router.push(`/view-story?id=${story.id}`)}
-                                        className="snap-start shrink-0 w-[140px] sm:w-[160px] flex flex-col group cursor-pointer"
+                                        className="snap-start shrink-0 w-[calc((100vw-120px)/2)] sm:w-[200px] flex flex-col group cursor-pointer"
                                     >
                                         {/* Card Image Container */}
-                                        <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-3 border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:-translate-y-1 shadow-md">
+                                        <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-4 border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:-translate-y-1 shadow-md">
                                             {cover ? (
                                                 <img
                                                     src={getAssetUrl(cover)}
-                                                    alt={story.title}
+                                                    alt={title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                                 />
                                             ) : (
@@ -451,7 +456,7 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                                     className="flex flex-col group cursor-pointer"
                                 >
                                     {/* Card Image */}
-                                    <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-4 border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:-translate-y-1">
+                                    <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-4 border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:-translate-y-1 shadow-md">
                                         {cover ? (
                                             <img
                                                 src={getAssetUrl(cover)}
