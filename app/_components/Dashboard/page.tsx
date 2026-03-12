@@ -47,6 +47,137 @@ interface DashboardProps {
 // Mock Data
 // Data Interfaces are now imported from @/app/types
 
+// --- REUSABLE STORY CARD COMPONENT ---
+const StoryCard = ({
+    item,
+    activeTab,
+    isChild,
+    isDarkMode,
+    likedStories,
+    toggleLike,
+    onAssign,
+    onDelete,
+    onClick,
+    className
+}: any) => {
+    const isStory = activeTab === 'videos';
+    const output = isStory ? (typeof item.output === 'string' ? JSON.parse(item.output) : item.output) : null;
+    const title = isStory ? (output?.formData?.title || output?.title || 'Senza Titolo') : (item.formData?.title || 'Senza Titolo');
+    const desc = isStory ? (output?.formData?.description) : (item.formData?.description);
+    const date = new Date(isStory ? item.created_at : item.updatedAt).toLocaleDateString();
+    const cover = isStory ? (output?.coverImage || item.cover_image) : item.formData?.coverPreview;
+
+    const textColor = isDarkMode ? "text-white" : "text-black";
+    const mutedColor = isDarkMode ? "text-gray-400" : "text-gray-500";
+
+    return (
+        <div className={cn("flex flex-col group cursor-pointer", className)} onClick={onClick}>
+            {/* Card Image Container */}
+            <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-4 border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:-translate-y-1 shadow-md">
+                {cover ? (
+                    <img
+                        src={getAssetUrl(cover)}
+                        alt={title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-400">
+                        {isStory ? <Play className="w-8 h-8" /> : <Share2 className="w-8 h-8" />}
+                    </div>
+                )}
+
+                {/* Badge (Bottom Left) */}
+                <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-white text-[11px] font-bold bg-black/40 px-2.5 py-1.5 rounded-full backdrop-blur-md border border-white/10">
+                    {isStory ? <Play className="w-3 h-3 fill-white" /> : <span>BOZZA</span>}
+                    {isStory && <span>Start</span>}
+                </div>
+
+                {/* Assigned Children Indicator (Top Left - Parent Only) */}
+                {!isChild && item.children && item.children.length > 0 && (
+                    <div className="absolute top-2 left-2 flex -space-x-2 z-10">
+                        {item.children.slice(0, 3).map((child: any) => (
+                            <div
+                                key={child.id}
+                                className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200"
+                                title={child.nickname}
+                            >
+                                <img
+                                    src={getAvatarUrl(child.avatar, child.nickname)}
+                                    alt={child.nickname}
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ))}
+                        {item.children.length > 3 && (
+                            <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-500">
+                                +{item.children.length - 3}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Delete Button (Draft Only) */}
+                {!isStory && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(e, item.id); }}
+                        className="absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-full backdrop-blur-sm transition-colors z-10 opacity-0 group-hover:opacity-100"
+                        title="Elimina bozza"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                )}
+
+                {/* LIKE BUTTON (Story Only - Top Right) */}
+                {isStory && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); toggleLike(e, item.id); }}
+                        className="absolute top-2 right-2 p-2 rounded-full backdrop-blur-md transition-all z-10 hover:scale-110 active:scale-95 group/like"
+                    >
+                        <Heart
+                            className={cn(
+                                "w-6 h-6 transition-colors drop-shadow-md",
+                                likedStories.has(item.id)
+                                    ? "fill-red-500 text-red-500"
+                                    : "text-white hover:text-red-200"
+                            )}
+                        />
+                    </button>
+                )}
+            </div>
+
+            {/* Card Details */}
+            <div className="flex flex-col px-1">
+                <h3 className={cn("font-bold text-sm leading-tight line-clamp-1 group-hover:text-pink-600 transition-colors", textColor)}>
+                    {title}
+                </h3>
+                <p className={cn("text-[10px] line-clamp-2 leading-relaxed opacity-70 mb-1", textColor)}>
+                    {desc || 'Nessuna descrizione'}
+                </p>
+                <div className="flex justify-between items-end mt-2">
+                    <span className={cn("text-[9px] font-medium opacity-50 uppercase tracking-wide", mutedColor)}>
+                        {date}
+                    </span>
+
+                    {/* Manage Sharing Button (Parent Only) */}
+                    {!isChild && isStory && (
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                onAssign(item);
+                            }}
+                            className={cn("p-2 rounded-full transition-colors", isDarkMode ? "hover:bg-gray-800 text-gray-400 hover:text-white" : "hover:bg-gray-100 text-gray-400 hover:text-black")}
+                            title="Modifica Condivisione"
+                        >
+                            <Users className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: DashboardProps) {
     const { user, isLoading: isAuthLoading, activeProfile } = useAuth();
     const router = useRouter();
@@ -189,6 +320,8 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
         }
     };
 
+    const contentToDisplay = activeTab === 'videos' ? stories : drafts;
+
     if (isAuthLoading) {
         return (
             <div className="w-full h-full flex justify-center items-center py-20">
@@ -292,104 +425,22 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                         {/* Carousel Container */}
                         <div
                             ref={carouselRef}
-                            className="flex gap-4 overflow-x-auto pb-4 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory scroll-smooth"
+                            className="flex gap-4 overflow-x-auto pb-4 px-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] snap-x snap-mandatory scroll-smooth"
                         >
-                            {stories.slice(0, 8).map((story) => {
-                                const storyOutput = typeof story.output === 'string' ? JSON.parse(story.output) : story.output;
-                                const cover = storyOutput?.coverImage || story.cover_image;
-
-
-                                const isStory = activeTab === 'videos';
-                                const title = storyOutput?.formData?.title || 'Nessuna titolo';
-                                const date = new Date(story.created_at).toLocaleDateString();
-
-
-                                return (
-                                    <div
-                                        key={`carousel-${story.id}`}
-                                        onClick={() => router.push(`/view-story?id=${story.id}`)}
-                                        className="snap-start shrink-0 w-[calc((100vw-120px)/2)] sm:w-[200px] flex flex-col group cursor-pointer"
-                                    >
-                                        {/* Card Image Container */}
-                                        <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-4 border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:-translate-y-1 shadow-md">
-                                            {cover ? (
-                                                <img
-                                                    src={getAssetUrl(cover)}
-                                                    alt={title}
-                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-800 text-gray-400">
-                                                    <Bookmark className="w-8 h-8" />
-                                                </div>
-                                            )}
-
-                                            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-white text-[11px] font-bold bg-black/40 px-2.5 py-1.5 rounded-full backdrop-blur-md border border-white/10">
-                                                <Play className="w-3 h-3 fill-white" />
-                                                <span>Start</span>
-                                            </div>
-
-
-
-
-                                            {/* Assigned Children Indicator (Parent Only) */}
-                                            {!isChild && story.children && story.children.length > 0 && (
-                                                <div className="absolute top-2 left-2 flex -space-x-2">
-                                                    {story.children.slice(0, 3).map((child: any) => (
-                                                        <div
-                                                            key={child.id}
-                                                            className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200"
-                                                            title={child.nickname}
-                                                        >
-                                                            <img
-                                                                src={getAvatarUrl(child.avatar, child.nickname)}
-                                                                alt={child.nickname}
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                    {story.children.length > 3 && (
-                                                        <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-500">
-                                                            +{story.children.length - 3}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Card Details */}
-                                        <div className="flex flex-col px-1">
-                                            <h3 className={cn("font-bold text-sm leading-tight line-clamp-1 group-hover:text-pink-600 transition-colors", textColor)}>
-                                                {title}
-                                            </h3>
-                                            <p className={cn("text-[10px] line-clamp-2 leading-relaxed opacity-70 mb-1", textColor)}>
-                                                {storyOutput?.formData?.description || 'Nessuna descrizione'}
-                                            </p>
-                                            <div className="flex justify-between items-end mt-2">
-                                                <span className={cn("text-[9px] font-medium opacity-50 uppercase tracking-wide", mutedColor)}>
-                                                    {new Date(story.created_at).toLocaleDateString()}
-                                                </span>
-
-                                                {/* Manage Sharing Button (Parent Only) */}
-                                                {!isChild && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            setStoryToAssign(story);
-                                                            setAssignmentModalOpen(true);
-                                                        }}
-                                                        className={cn("p-2 rounded-full transition-colors", isDarkMode ? "hover:bg-gray-800 text-gray-400 hover:text-white" : "hover:bg-gray-100 text-gray-400 hover:text-black")}
-                                                        title="Modifica Condivisione"
-                                                    >
-                                                        <Users className="w-4 h-4" />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )
-                            })}
+                            {stories.slice(0, 8).map((story) => (
+                                <StoryCard
+                                    key={`carousel-${story.id}`}
+                                    item={story}
+                                    activeTab="videos"
+                                    isChild={isChild}
+                                    isDarkMode={isDarkMode}
+                                    likedStories={likedStories}
+                                    toggleLike={toggleLike}
+                                    onAssign={(s: any) => { setStoryToAssign(s); setAssignmentModalOpen(true); }}
+                                    onClick={() => router.push(`/view-story?id=${story.id}`)}
+                                    className="snap-start shrink-0 w-[calc(50%-8px)] min-w-[calc(50%-8px)] sm:w-[200px] sm:min-w-[200px]"
+                                />
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -424,143 +475,32 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                         <div className="col-span-full flex justify-center py-20">
                             <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
                         </div>
-                    ) : (activeTab === 'videos' ? stories : drafts).length === 0 ? (
+                    ) : contentToDisplay.length === 0 ? (
                         <div className="col-span-full flex flex-col items-center justify-center py-20 text-gray-400">
                             <p>Nessun contenuto trovato.</p>
                         </div>
                     ) : (
-                        (activeTab === 'videos' ? stories : drafts).map((item: any) => {
-                            // Handle different structure for Story vs Draft
-                            const isStory = activeTab === 'videos';
-                            const output = isStory ? (typeof item.output === 'string' ? JSON.parse(item.output) : item.output) : null;
-                            const title = isStory ? output.title : (item.formData?.title || 'Senza Titolo');
-                            const desc = isStory ? (output?.formData?.description) : (item.formData?.description);
-                            const date = new Date(isStory ? item.created_at : item.updatedAt).toLocaleDateString();
-                            const cover = isStory ? (output?.coverImage || item.cover_image) : item.formData?.coverPreview;
-
-                            return (
-                                <div
-                                    key={item.id}
-                                    onClick={() => {
-                                        if (isStory) {
-                                            router.push(`/view-story?id=${item.id}`);
-                                        } else {
-                                            setSelectedDraftId(String(item.id));
-                                            setView('laboratorio');
-                                        }
-                                    }}
-                                    className="flex flex-col group cursor-pointer"
-                                >
-                                    {/* Card Image */}
-                                    <div className="relative aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden mb-4 border border-black/5 dark:border-white/5 transition-transform duration-300 group-hover:-translate-y-1 shadow-md">
-                                        {cover ? (
-                                            <img
-                                                src={getAssetUrl(cover)}
-                                                alt={title}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-                                                {isStory ? <Play className="w-8 h-8 text-white/50" /> : <Share2 className="w-8 h-8 text-white/50" />}
-                                            </div>
-                                        )}
-
-                                        {/* Badge */}
-                                        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-white text-[11px] font-bold bg-black/40 px-2.5 py-1.5 rounded-full backdrop-blur-md border border-white/10">
-                                            {isStory ? <Play className="w-3 h-3 fill-white" /> : <span>BOZZA</span>}
-                                            {isStory && <span>Start</span>}
-                                        </div>
-
-                                        {/* Manage Sharing Button (Parent Only) - Only for Stories */}
-
-
-                                        {/* Assigned Children Indicator (Parent Only) */}
-                                        {!isChild && item.children && item.children.length > 0 && (
-                                            <div className="absolute top-2 left-2 flex -space-x-2">
-                                                {item.children.slice(0, 3).map((child: any) => (
-                                                    <div
-                                                        key={child.id}
-                                                        className="w-6 h-6 rounded-full border-2 border-white overflow-hidden bg-gray-200"
-                                                        title={child.nickname}
-                                                    >
-                                                        <img
-                                                            src={child.avatar?.startsWith('http') ? child.avatar : `https://api.dicebear.com/7.x/avataaars/svg?seed=${child.avatar || child.nickname}`}
-                                                            alt={child.nickname}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    </div>
-                                                ))}
-                                                {item.children.length > 3 && (
-                                                    <div className="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[8px] font-bold text-gray-500">
-                                                        +{item.children.length - 3}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {!isStory && (
-                                            <button
-                                                onClick={(e) => handleDeleteDraft(e, item.id)}
-                                                className="absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-full backdrop-blur-sm transition-colors z-10 opacity-0 group-hover:opacity-100"
-                                                title="Elimina bozza"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        )}
-
-                                        {/* LIKE BUTTON (Story Only) */}
-                                        {isStory && (
-                                            <button
-                                                onClick={(e) => toggleLike(e, item.id)}
-                                                className="absolute top-2 right-2 p-2 rounded-full backdrop-blur-md transition-all z-10 hover:scale-110 active:scale-95 group/like"
-                                            >
-                                                <Heart
-                                                    className={cn(
-                                                        "w-6 h-6 transition-colors drop-shadow-md",
-                                                        likedStories.has(item.id)
-                                                            ? "fill-red-500 text-red-500"
-                                                            : "text-white hover:text-red-200"
-                                                    )}
-                                                />
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    {/* Details */}
-                                    <div className="flex flex-col px-1">
-                                        <div className="flex justify-between items-start gap-2 mb-1">
-                                            <h3 className={cn("font-bold text-lg leading-tight line-clamp-1 group-hover:text-pink-600 transition-colors", textColor)}>
-                                                {title}
-                                            </h3>
-                                        </div>
-                                        <p className={cn("text-sm line-clamp-2 leading-relaxed opacity-70 mb-2", textColor)}>
-                                            {desc || 'Nessuna descrizione'}
-                                        </p>
-                                        <div className="flex justify-between items-end mt-2">
-                                            <span className={cn("text-[10px] font-medium opacity-50 uppercase tracking-wide", mutedColor)}>
-                                                {date}
-                                            </span>
-
-                                            {/* Manage Sharing Button (Parent Only) */}
-                                            {!isChild && isStory && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        setStoryToAssign(item);
-                                                        setAssignmentModalOpen(true);
-                                                    }}
-                                                    className={cn("p-2 rounded-full transition-colors", isDarkMode ? "hover:bg-gray-800 text-gray-400 hover:text-white" : "hover:bg-gray-100 text-gray-400 hover:text-black")}
-                                                    title="Modifica Condivisione"
-                                                >
-                                                    <Users className="w-4 h-4" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })
+                        contentToDisplay.map((item: any) => (
+                            <StoryCard
+                                key={item.id}
+                                item={item}
+                                activeTab={activeTab}
+                                isChild={isChild}
+                                isDarkMode={isDarkMode}
+                                likedStories={likedStories}
+                                toggleLike={toggleLike}
+                                onAssign={(s: any) => { setStoryToAssign(s); setAssignmentModalOpen(true); }}
+                                onDelete={handleDeleteDraft}
+                                onClick={() => {
+                                    if (activeTab === 'videos') {
+                                        router.push(`/view-story?id=${item.id}`);
+                                    } else {
+                                        setSelectedDraftId(String(item.id));
+                                        setView('laboratorio');
+                                    }
+                                }}
+                            />
+                        ))
                     )}
                 </div>
             )}
