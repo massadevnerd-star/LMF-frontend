@@ -1,4 +1,4 @@
-import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid, Sun, Moon, ShieldCheck } from 'lucide-react';
+import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid, Sun, Moon, ShieldCheck, Lock } from 'lucide-react';
 import Link from 'next/link';
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import Image from 'next/image';
@@ -154,7 +154,7 @@ const Header = forwardRef<any, HeaderProps>(({
 
         // 4. Area Genitori (Adult Only)
         ...(isAdultProfile ? [{
-            icon: <Users className="w-5 h-5" />,
+            icon: <Lock className="w-5 h-5" />,
             label: t('header.menu.parents_area'),
             action: () => setView('parents-area')
         }] : []),
