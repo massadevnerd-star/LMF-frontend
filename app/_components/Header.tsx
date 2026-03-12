@@ -2,6 +2,7 @@ import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid,
 import Link from 'next/link';
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import Image from 'next/image';
+import { cn } from '@/app/lib/utils';
 import { ViewType } from '@/app/types';
 import api from '@/app/lib/api';
 import { useAuth } from '@/app/context/AuthContext';
@@ -138,28 +139,28 @@ const Header = forwardRef<any, HeaderProps>(({
     const isAdultProfile = activeProfile === 'adult';
 
     const menuItems: any[] = [
-        // 1. Dashboard (Everyone)
+        // 1. Dashboard
         { icon: <Home className="w-5 h-5" />, label: t('header.menu.dashboard'), action: () => setView('home') },
 
-        // 2. Cambia Profilo (Everyone)
+        // 2. Cambia Profilo
         { icon: <Users className="w-5 h-5" />, label: t('header.menu.change_profile'), action: handleProfileExit },
 
-        // 3. Il mio profilo — settings page (Adult Only)
+        // 3. Il mio profilo (Adult Only)
         ...(isAdultProfile ? [{
             icon: <Settings className="w-5 h-5" />,
             label: t('header.menu.my_settings'),
             action: () => setView('user-profile')
         }] : []),
 
-        // 4. Parents Area (Adult Only)
+        // 4. Area Genitori (Adult Only)
         ...(isAdultProfile ? [{
             icon: <Users className="w-5 h-5" />,
             label: t('header.menu.parents_area'),
             action: () => setView('parents-area')
         }] : []),
 
-        // 5. Magic Help (Everyone)
-        { icon: <HelpCircle className="w-5 h-5" />, label: t('header.menu.magic_help') },
+        // 5. Aiuto Magico
+        { icon: <HelpCircle className="w-5 h-5" />, label: t('header.menu.magic_help'), action: () => { /* Handle help */ } },
 
         // 6. Admin Dashboard (Admin AND Adult Profile ONLY)
         ...(isAdmin && isAdultProfile ? [{
@@ -303,7 +304,7 @@ const Header = forwardRef<any, HeaderProps>(({
                                 }`}
                             title="Cambia Lingua / Switch Language"
                         >
-                            {language === 'it' ? '🇮🇹' : '🇬🇧'}
+                            {language === 'it' ? '🇬🇧' : '🇮🇹'}
                         </button>
 
                         <button
@@ -421,7 +422,7 @@ const Header = forwardRef<any, HeaderProps>(({
                             <div className="flex items-center justify-between mb-3">
                                 <p className={`text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'text-indigo-400' : 'text-gray-400'
                                     }`}>
-                                    {activeProfile === 'adult' ? t('header.parent') : 'Eroe Attuale'}
+                                    {activeProfile === 'adult' ? t('header.parent') : t('header.current_hero')}
                                 </p>
                                 <button
                                     onClick={() => setIsMobileMenuOpen(false)}
@@ -435,83 +436,40 @@ const Header = forwardRef<any, HeaderProps>(({
                                 }`}>
                                 {activeProfile === 'adult' ? user?.name : (activeProfile?.nickname || t('header.guest'))}
                             </p>
-                        </div>
 
-                        {/* Voci menu */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-1">
-
-                            {/* Dashboard */}
-                            <button onClick={() => { setIsMobileMenuOpen(false); setView('home'); }}
-                                className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold transition-all active:scale-95 ${isDarkMode
-                                    ? 'text-white hover:bg-indigo-500/10'
-                                    : 'text-gray-800 hover:bg-orange-50'
-                                    }`}>
-                                <span className="text-2xl shrink-0">🏠</span>
-                                <span className="text-base font-bold">Dashboard</span>
-                            </button>
-
-                            {/* Cambia Profilo */}
-                            {isAuthenticated && (
-                                <button onClick={() => { setIsMobileMenuOpen(false); handleProfileExit(); }}
-                                    className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold transition-all active:scale-95 ${isDarkMode ? 'text-white hover:bg-indigo-500/10' : 'text-gray-800 hover:bg-orange-50'
-                                        }`}>
-                                    <span className="text-2xl shrink-0">👥</span>
-                                    <span className="text-base font-bold">{t('header.menu.change_profile')}</span>
-                                </button>
-                            )}
-
-                            {/* Il mio profilo (adult only) */}
-                            {isAuthenticated && activeProfile === 'adult' && (
-                                <button onClick={() => { setIsMobileMenuOpen(false); setView('user-profile'); }}
-                                    className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold transition-all active:scale-95 ${isDarkMode ? 'text-white hover:bg-indigo-500/10' : 'text-gray-800 hover:bg-orange-50'
-                                        }`}>
-                                    <span className="text-2xl shrink-0">⚙️</span>
-                                    <span className="text-base font-bold">{t('header.menu.my_settings')}</span>
-                                </button>
-                            )}
-
-                            {/* Area Genitori (adult only) */}
-                            {isAuthenticated && activeProfile === 'adult' && (
-                                <button onClick={() => { setIsMobileMenuOpen(false); setView('parents-area'); }}
-                                    className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold transition-all active:scale-95 ${isDarkMode ? 'text-white hover:bg-indigo-500/10' : 'text-gray-800 hover:bg-orange-50'
-                                        }`}>
-                                    <span className="text-2xl shrink-0">👨‍👩‍👧</span>
-                                    <span className="text-base font-bold">{t('header.menu.parents_area')}</span>
-                                </button>
-                            )}
-
-                            {/* Tema */}
-                            <button onClick={() => { setIsMobileMenuOpen(false); onToggleTheme(); }}
-                                className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold transition-all active:scale-95 ${isDarkMode ? 'text-white hover:bg-indigo-500/10' : 'text-gray-800 hover:bg-orange-50'
-                                    }`}>
-                                <span className="text-2xl shrink-0">{isDarkMode ? '☀️' : '✨'}</span>
-                                <span className="text-base font-bold">{isDarkMode ? t('header.menu.day_mode_full') : t('header.menu.night_mode_full')}</span>
-                            </button>
-
-                            {/* Lingua */}
-                            <button onClick={() => { setIsMobileMenuOpen(false); toggleLanguage(); }}
-                                className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold transition-all active:scale-95 ${isDarkMode ? 'text-white hover:bg-indigo-500/10' : 'text-gray-800 hover:bg-orange-50'
-                                    }`}>
-                                <span className="text-2xl shrink-0">{language === 'it' ? '🇮🇹' : '🇬🇧'}</span>
-                                <span className="text-base font-bold">{language === 'it' ? 'Italiano' : 'English'}</span>
+                            {/* Lingua sotto l'username - Solo Mobile */}
+                            <button onClick={toggleLanguage}
+                                className={`mt-3 flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${isDarkMode ? 'bg-white/5 text-indigo-300' : 'bg-gray-50 text-gray-500 border border-gray-100'}`}>
+                                <span className="text-lg shrink-0">{language === 'it' ? '🇬🇧' : '🇮🇹'}</span>
+                                <span>{language === 'it' ? 'English' : 'Italiano'}</span>
                             </button>
                         </div>
 
-                        {/* Esci / Login — fissato in fondo */}
-                        <div className={`p-4 border-t ${isDarkMode ? 'border-white/10' : 'border-gray-100'
-                            }`}>
-                            {isAuthenticated ? (
-                                <button onClick={() => { setIsMobileMenuOpen(false); logout(); setView('home'); }}
-                                    className="flex items-center gap-4 w-full px-4 py-3.5 rounded-2xl font-bold transition-all active:scale-95 text-red-500 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
-                                    <span className="text-2xl shrink-0">🚪</span>
-                                    <span className="text-base font-bold">{t('header.menu.logout')}</span>
-                                </button>
-                            ) : (
-                                <button onClick={() => { setIsMobileMenuOpen(false); setIsLoginModalOpen(true); }}
-                                    className="w-full flex items-center justify-center gap-2 p-4 rounded-2xl font-bold bg-orange-500 text-white shadow-lg hover:scale-105 transition-all">
-                                    {t('header.menu.login_to_start')}
-                                </button>
-                            )}
+                        {/* Voci menu dinamiche */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            {menuItems.map((item, i) => {
+                                // Separatore speciale per l'ultimo elemento (Esci) per distanziarlo se necessario
+                                const isLogout = i === menuItems.length - 1;
+
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            if (item.action) item.action();
+                                        }}
+                                        className={cn(
+                                            "flex items-center gap-4 w-full px-4 py-4 rounded-2xl font-bold transition-all active:scale-95",
+                                            isDarkMode ? "hover:bg-indigo-500/10" : "hover:bg-orange-50",
+                                            item.color || (isDarkMode ? "text-white" : "text-gray-800"),
+                                            isLogout && "mt-4 border-t border-dashed border-gray-100 dark:border-white/5 pt-6"
+                                        )}
+                                    >
+                                        <span className="shrink-0">{item.icon}</span>
+                                        <span className="text-base">{item.label}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
