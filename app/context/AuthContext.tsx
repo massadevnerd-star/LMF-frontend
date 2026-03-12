@@ -57,11 +57,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 return;
             }
 
-            // Check drafts
-            const resDrafts = await api.get('/api/auth/stories?status=draft');
-            const hasDrafts = Array.isArray(resDrafts.data) && resDrafts.data.length > 0;
-
-            setHasStories(hasPublished || hasDrafts);
+            // Note: We only check for published stories for the mobile scroll lock
+            // so that if the "Videos" tab is empty, the page feels "locked" as requested.
+            setHasStories(hasPublished);
         } catch (err) {
             console.error('[MOBILE-DEBUG] refreshHasStories failed', err);
             setHasStories(true); // Fallback to true on error

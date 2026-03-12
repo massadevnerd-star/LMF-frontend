@@ -1,4 +1,4 @@
-import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid, Sun, Moon } from 'lucide-react';
+import { Menu, X, Home, Users, Settings, LogOut, HelpCircle, Search, LayoutGrid, Sun, Moon, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import Image from 'next/image';
@@ -137,40 +137,40 @@ const Header = forwardRef<any, HeaderProps>(({
     const isAdmin = user?.roles?.some((r: any) => r.name === 'admin');
     const isAdultProfile = activeProfile === 'adult';
 
-    const menuItems: MenuItem[] = [
-        // 1. Dashboard (Everyone) — torna alla home/dashboard
-        { icon: '🏠', label: t('header.menu.dashboard'), action: () => setView('home') },
+    const menuItems: any[] = [
+        // 1. Dashboard (Everyone)
+        { icon: <Home className="w-5 h-5" />, label: t('header.menu.dashboard'), action: () => setView('home') },
 
-        // 2. Cambia Profilo (Everyone) — seleziona profilo figlio/adulto
-        { icon: '👥', label: t('header.menu.change_profile'), action: handleProfileExit },
+        // 2. Cambia Profilo (Everyone)
+        { icon: <Users className="w-5 h-5" />, label: t('header.menu.change_profile'), action: handleProfileExit },
 
         // 3. Il mio profilo — settings page (Adult Only)
         ...(isAdultProfile ? [{
-            icon: '⚙️',
+            icon: <Settings className="w-5 h-5" />,
             label: t('header.menu.my_settings'),
             action: () => setView('user-profile')
         }] : []),
 
         // 4. Parents Area (Adult Only)
         ...(isAdultProfile ? [{
-            icon: '👨‍👩‍👧',
+            icon: <Users className="w-5 h-5" />,
             label: t('header.menu.parents_area'),
             action: () => setView('parents-area')
         }] : []),
 
         // 5. Magic Help (Everyone)
-        { icon: '🆘', label: t('header.menu.magic_help') },
+        { icon: <HelpCircle className="w-5 h-5" />, label: t('header.menu.magic_help') },
 
         // 6. Admin Dashboard (Admin AND Adult Profile ONLY)
         ...(isAdmin && isAdultProfile ? [{
-            icon: '🛡️',
+            icon: <ShieldCheck className="w-5 h-5" />,
             label: t('header.menu.admin_dashboard'),
             action: () => window.location.href = '/admin',
             color: 'text-indigo-600 font-black'
         }] : []),
 
         // 7. Logout (Everyone)
-        { icon: '🚪', label: t('header.menu.logout'), color: 'text-red-500', action: () => { logout(); setView('home'); } },
+        { icon: <LogOut className="w-5 h-5" />, label: t('header.menu.logout'), color: 'text-red-500', action: () => { logout(); setView('home'); } },
     ];
 
     const handlePinVerifySuccess = async (pin: string) => {
@@ -306,15 +306,24 @@ const Header = forwardRef<any, HeaderProps>(({
                             {language === 'it' ? '🇮🇹' : '🇬🇧'}
                         </button>
 
-                        {/* Theme Toggle */}
                         <button
                             onClick={onToggleTheme}
-                            className={`flex items-center gap-2 px-3 md:px-5 py-2 md:py-2.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg border-2 ${isDarkMode
+                            className={`flex items-center gap-3 px-3 md:px-5 py-2 md:py-2.5 rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg border-2 ${isDarkMode
                                 ? 'bg-indigo-600 text-yellow-200 border-indigo-400/30'
                                 : 'bg-orange-500 text-white border-orange-400'
                                 }`}
                         >
-                            {isDarkMode ? `☀️ ${t('header.menu.day_mode')}` : `✨ ${t('header.menu.night_mode')}`}
+                            {isDarkMode ? (
+                                <>
+                                    <Sun className="w-4 h-4" />
+                                    <span>{t('header.menu.day_mode')}</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Moon className="w-4 h-4" />
+                                    <span>{t('header.menu.night_mode')}</span>
+                                </>
+                            )}
                         </button>
 
                         {/* Auth Section: Login Button or Profile */}
@@ -370,7 +379,7 @@ const Header = forwardRef<any, HeaderProps>(({
                                             </p>
                                         </div>
                                         <div className="space-y-1">
-                                            {menuItems.map((item, i) => (
+                                            {menuItems.map((item: any, i: number) => (
                                                 <button
                                                     key={i}
                                                     onClick={() => {
@@ -381,7 +390,7 @@ const Header = forwardRef<any, HeaderProps>(({
                                                     }}
                                                     className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl font-bold transition-all cursor-pointer text-sm ${itemHover} ${item.color || ''}`}
                                                 >
-                                                    <span className="text-xl">{item.icon}</span>
+                                                    <span className="shrink-0">{item.icon}</span>
                                                     {item.label}
                                                 </button>
                                             ))}

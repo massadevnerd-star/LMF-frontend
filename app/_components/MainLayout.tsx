@@ -117,7 +117,7 @@ export default function MainLayout({
                             )}
                             aria-label="Scorri su"
                         >
-                            <ChevronUp className="w-5 h-5" strokeWidth={3} />
+                            <ChevronUp className="w-5 h-5" />
                         </button>
                     )}
 
@@ -132,7 +132,7 @@ export default function MainLayout({
                             )}
                             aria-label="Scorri giù"
                         >
-                            <ChevronDown className="w-5 h-5" strokeWidth={3} />
+                            <ChevronDown className="w-5 h-5" />
                         </button>
                     )}
                 </main>
