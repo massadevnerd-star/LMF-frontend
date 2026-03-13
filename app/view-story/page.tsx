@@ -15,6 +15,8 @@ function ViewStoryContent() {
     const [story, setStory] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [selectedLang, setSelectedLang] = useState('it');
 
     useEffect(() => {
         if (!id) return;
@@ -34,7 +36,6 @@ function ViewStoryContent() {
         fetchStory();
     }, [id]);
 
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
     const handleSetView = (view: any) => {
@@ -64,31 +65,83 @@ function ViewStoryContent() {
         console.error("Parse error", e);
     }
 
+    const translations = storyData.translations || {};
+    const availableLangs = ['it', ...Object.keys(translations)];
+    const effectiveStoryData = selectedLang === 'it' ? storyData : translations[selectedLang];
+
     // Check creationMode (either in DB column or inside JSON)
     const creationMode = story.creation_mode || storyData.creationMode || storyData.formData?.creationMode;
     const isManual = creationMode === 'manual';
 
+    const renderLanguageSwitcher = () => {
+        if (availableLangs.length <= 1) return null;
+        return (
+            <div className="fixed top-6 right-20 z-[110] flex gap-2">
+                {availableLangs.map(lang => (
+                    <button
+                        key={lang}
+                        onClick={() => setSelectedLang(lang)}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold uppercase border-2 transition-all ${
+                            selectedLang === lang 
+                                ? 'bg-indigo-500 text-white border-indigo-500 scale-110 shadow-lg' 
+                                : 'bg-white/10 text-white/70 border-white/20 hover:bg-white/20 backdrop-blur-md'
+                        }`}
+                        title={`Cambia lingua in ${lang}`}
+                    >
+                        {lang}
+                    </button>
+                ))}
+            </div>
+        );
+    };
+
     if (isManual) {
         // Prepare Manual Data
-        const slides = storyData.slides || storyData.chapters || [];
-        const title = storyData.title || storyData.formData?.title || "Storia";
-        const audioPreview = storyData.audioPreview || storyData.formData?.audioPreview;
+        let slides = storyData.slides || storyData.chapters || [];
+        
+        if (selectedLang !== 'it' && effectiveStoryData.slides) {
+            slides = slides.map((originalSlide: any, index: number) => {
+                const transSlide = effectiveStoryData.slides[index];
+                if (!transSlide) return originalSlide;
+
+                return {
+                    ...originalSlide,
+                    // If audioUrl exists from translation, override slide audio and force custom mode
+                    audio: transSlide.audioUrl ? { url: transSlide.audioUrl, isDefaultAudio: false, duration: 15 } : originalSlide.audio,
+                    freeElements: transSlide.freeElements || originalSlide.freeElements
+                };
+            });
+        }
+
+        const title = effectiveStoryData.title || storyData.title || storyData.formData?.title || "Storia";
+        // If not IT, we don't have a global audio preview anymore, we use slide audio
+        const audioPreview = selectedLang === 'it' ? (storyData.audioPreview || storyData.formData?.audioPreview) : null;
         const coverImage = storyData.coverImage || storyData.formData?.coverPreview || storyData.formData?.coverImage;
         const orientation = storyData.orientation || storyData.formData?.coverOrientation || 'vertical';
-        const audioMode = storyData.audioMode || storyData.formData?.audioMode || 'global';
+        const audioMode = selectedLang === 'it' ? (storyData.audioMode || storyData.formData?.audioMode || 'global') : 'slides';
 
         return (
-            <ManualStoryViewer
-                slides={slides}
-                storyTitle={title}
-                audioPreview={audioPreview}
-                coverImage={coverImage}
-                onClose={() => router.push('/')}
-                orientation={orientation}
-                audioMode={audioMode}
-            />
+            <>
+                {renderLanguageSwitcher()}
+                <ManualStoryViewer
+                    slides={slides}
+                    storyTitle={title}
+                    audioPreview={audioPreview}
+                    coverImage={coverImage}
+                    onClose={() => router.push('/')}
+                    orientation={orientation}
+                    audioMode={audioMode}
+                />
+            </>
         );
     }
+
+    // For StoryBook (AI Generated Stories)
+    // We update the story object conceptually before passing it down
+    const translatedStoryForBook = {
+        ...story,
+        output: effectiveStoryData
+    };
 
     return (
         <MainLayout
@@ -97,7 +150,8 @@ function ViewStoryContent() {
             isDarkMode={isDarkMode}
             toggleTheme={toggleTheme}
         >
-            <StoryBook story={story} />
+            {renderLanguageSwitcher()}
+            <StoryBook story={translatedStoryForBook} />
         </MainLayout>
     );
 }

@@ -26,6 +26,7 @@ import api, { deleteStory } from '@/app/lib/api';
 import { useAuth } from '@/app/context/AuthContext';
 import NotLogged from "../NotLogged/page";
 import AssignmentUpdateModal from './_components/AssignmentUpdateModal';
+import MascotOverlay from './_components/MascotOverlay';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -549,6 +550,12 @@ export default function Dashboard({ isDarkMode, setView, setSelectedDraftId }: D
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* MASCOT OVERLAY */}
+            <MascotOverlay 
+                isDarkMode={isDarkMode} 
+                latestStory={stories.length > 0 ? stories[0] : null} 
+            />
 
         </div>
     );
